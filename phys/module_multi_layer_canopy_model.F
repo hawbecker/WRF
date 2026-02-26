@@ -432,7 +432,7 @@
   end subroutine read_obs_driving
 
   !--------------------------------------------------------
-  subroutine initiate_mcm_forest( SP, CLAI, MF, zi, nz, z0 )
+    subroutine initiate_mcm_forest( SP, CLAI, MF, zi, nz, z0, ii, jj )
 
   USE mcm_data_mod, only : Soil_property, canopy_lai, mcm_force
   USE clm_varpar_my, only : nlevgrnd, sc_p
@@ -443,9 +443,10 @@
   REAL, DIMENSION(1:nz),INTENT(IN) :: zi
   real :: z0  !input roughness
 
-  TYPE(Soil_property), INTENT(OUT) :: SP
-  TYPE(canopy_lai),    INTENT(OUT) :: CLAI
-  TYPE(mcm_force),     INTENT(OUT) :: MF
+    TYPE(Soil_property), INTENT(OUT) :: SP
+    TYPE(canopy_lai),    INTENT(OUT) :: CLAI
+    TYPE(mcm_force),     INTENT(OUT) :: MF
+    integer, intent(in) :: ii, jj
 
   integer :: i
   real :: sum_lai, LAI
@@ -464,7 +465,7 @@
 ! TWJ
   SP%ipts = 7 ! TODO
   CLAI%sai(:) = 0.
-  call lai_wrf_grid( CLAI%tlai, CLAI%lai, CLAI%lad, CLAI%h, CLAI%z, CLAI%dz, CLAI%bl, CLAI%nw, zi(1:nz), nz)
+    call lai_wrf_grid( CLAI%tlai, CLAI%lai, CLAI%lad, CLAI%h, CLAI%z, CLAI%dz, CLAI%bl, CLAI%nw, zi(1:nz), nz, ii, jj)
 
   sum_lai = 0.
   do i = 1, CLAI%nw
@@ -834,18 +835,22 @@
  
 !=============================================================
 
-  subroutine lai_wrf_grid( tlai, lai_z, lad_z, h, z, dz, bl, numcan_wrf, zi, nz )
+    subroutine lai_wrf_grid( tlai, lai_z, lad_z, h, z, dz, bl, numcan_wrf, zi, nz, ii, jj )
 
   use clm_varpar_my, only : mxlevcan_wrf 
-  implicit none
+    implicit none
+    ! allow access to grid state variables when 3D option is enabled
+    use module_domain, only : grid
+    use module_configure, only : config_flags
 
   integer :: nz
   real, dimension(1:nz), intent(in) :: zi  ! above surf (m), start from surf to canopy top
 
-  real, dimension(1:mxlevcan_wrf), intent(out) :: lai_z, lad_z, z, dz
+    real, dimension(1:mxlevcan_wrf), intent(out) :: lai_z, lad_z, z, dz
   real :: h, tlai
   integer, intent(out) :: bl               ! bottom layer layer in zi
   integer, intent(out) :: numcan_wrf       ! layers in MCM
+    integer, intent(in) :: ii, jj            ! horizontal indices of column
 
   ! ------ local ------
   integer :: nlevel   ! levels read from usr input
@@ -855,11 +860,38 @@
   real, dimension(1:mxlevcan_wrf) :: lai_z_tmp, lad_z_tmp, z_tmp, dz_tmp
   integer :: k, ir, tl
  
-  call read_lai( nlevel, lad, lad_ht, cht, tlai )
-  lh = lad_ht*cht
-  h = cht  ! canopy height
+  if ( config_flags%mcm_use_3d_lad ) then
+        ! populate arrays from grid variables for this column
+        nlevel = size(grid%lad_z_3d)
+        do k = 1, nlevel
+            lad(k)    = grid%lad_3d(ii,k,jj)
+            lad_ht(k) = grid%lad_z_3d(k)
+        end do
+        cht = grid%canopyz_2d(ii,jj)
 
-  if ( zi(nz) < cht ) then
+        ! compute total LAI by integrating lad over the vertical
+        if ( nlevel .gt. 0 ) then
+            real, allocatable :: ht(:), dzlev(:)
+            allocate(ht(nlevel), dzlev(nlevel))
+            ht = lad_ht(1:nlevel) * cht
+            dzlev(1) = ht(1)
+            do k = 2, nlevel
+                dzlev(k) = ht(k) - ht(k-1)
+            end do
+            tlai = sum( lad(1:nlevel) * dzlev(1:nlevel) )
+            deallocate(ht, dzlev)
+        else
+            tlai = 0.0
+        endif
+        lh = lad_ht*cht
+        h = cht
+  else
+        call read_lai( nlevel, lad, lad_ht, cht, tlai )
+        lh = lad_ht*cht
+        h = cht  ! canopy height
+  endif
+
+    if ( zi(nz) < cht ) then
       write(*,*) 'Input layers height are wrong!', nz, zi(nz), cht 
       STOP
   endif
@@ -6374,8 +6406,8 @@ An_soil = 5.5
   co2_tend = 0.
 
   if (itimestep >= 5*60*50) then
-      DO j = jts, min(jte,jde-1)
-      DO i = its, min(ite,ide-1)
+    DO j = jts, min(jte,jde-1)
+    DO i = its, min(ite,ide-1)
           !if (i > 300) co2_tend(i,1,j) = 1.*mut(i,j)
           co2_tend(i,1,j) = 1.
       ENDDO
@@ -7231,7 +7263,7 @@ MODULE module_multi_layer_canopy_model
           !if (i <= 300 .or. i >= 800 ) then
              roughness_len = 0.05 ! unit [m]
              call initiate_mcm_forest( SP(i,j), CLAI(i,j), MF(i,j), &
-                                grid%z(i,1:kme-1,j) - hgt(i,j), kme-1, roughness_len )
+                                grid%z(i,1:kme-1,j) - hgt(i,j), kme-1, roughness_len, i, j )
           !else
           !   roughness_len = 0.1 ! unit [m]
           !   call initiate_mcm_grass( CLAI(i,j), grid%z(i,1:kme-1,j) - hgt(i,j), kme-1, &
