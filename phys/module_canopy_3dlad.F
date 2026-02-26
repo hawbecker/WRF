@@ -31,57 +31,9 @@ subroutine init_canopy_3dlad( id, ims, ime, jms, jme )
 
    if ( canopy_3dlad_initialized ) return
 
-   ni = ime - ims + 1
-   nj = jme - jms + 1
-
-   is_monitor = wrf_dm_on_monitor()
-
-   !---------------------------------------------------------------
-   ! Build filename: mcanopy_inputs_dXX.nc
-   !---------------------------------------------------------------
-   write(dom_id_str,'(I2.2)') id
-   filename = 'mcanopy_inputs_d' // dom_id_str // '.nc'
-
-   is_monitor = wrf_dm_on_monitor()
-
-   !---------------------------------------------------------------
-   ! Monitor task reads NetCDF
-   !---------------------------------------------------------------
-   if ( is_monitor ) then
-      call read_canopy_3dlad_monitor( lad_3d,              &
-                                      canopyz_2d,          &
-                                      lad_z_3d,             &
-                                      nk_3dlad,            &
-                                      ims, ime, jms, jme )
-   endif
-
-   !---------------------------------------------------------------
-   ! Broadcast vertical dimension
-   !---------------------------------------------------------------
-   call wrf_dm_bcast_integer( nk_3dlad )
-
-   !---------------------------------------------------------------
-   ! Allocate on non-monitor tasks
-   !---------------------------------------------------------------
-   if ( .not. is_monitor ) then
-      allocate( lad_3d(ims:ime, nk_3dlad, jms:jme) )
-      allocate( canopyz_2d(ims:ime, jms:jme) )
-      allocate( lad_z_3d(nk_3dlad) )
-   endif
-
-   !---------------------------------------------------------------
-   ! Broadcast data
-   !---------------------------------------------------------------
-   call wrf_dm_bcast_real( lad_3d,     ni * nj * nk_3dlad )
-   call wrf_dm_bcast_real( canopyz_2d, ni * nj )
-   call wrf_dm_bcast_real( lad_z_3d,    nk_3dlad )
-
-!   grid%3dlad     = lad_3d
-!   grid%3dcanopyz = canopyz_2d
-!   grid%3dz       = lad_z_3d
-
-   deallocate(lad_3d, canopyz_2d, lad_z_3d)
-
+   ! The external NetCDF reader has been disabled: 3D LAD data
+   ! must be provided via wrfinput/restart (grid%lad_3d, canopyz_2d,
+   ! lad_z_3d). Simply mark initialized and return.
    canopy_3dlad_initialized = .true.
 
 end subroutine init_canopy_3dlad
