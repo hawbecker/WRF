@@ -1,0 +1,20 @@
+# Ignore compiled objects and binaries
+*.o
+*.mod
+*.exe
+*.a
+*.log
+
+# Ignore build artifacts and executables in main
+/main/*.exe
+/main/*.o
+/main/*.mod
+/main/libwrflib.a
+
+# NetCDF inputs and large data
+*.nc
+
+# other temporary files
+*~
+*.swp
+

@@ -1,0 +1,16 @@
+#!/bin/bash
+#PBS -A WYOM0122
+#PBS -l walltime=00:10:00
+#PBS -l select=6:ncpus=128:mpiprocs=60
+#PBS -N Real
+#PBS -o log.oe
+#PBS -j oe
+#PBS -q main
+#PBS -l job_priority=premium
+
+cd /glade/derecho/scratch/lijiez/WRF-MCANOPY-ASR/WRFV4.5.2/test/em_real
+source env_LZh.sh
+
+touch ./start_real
+mpibind ./real.exe >& log/real.log
+touch ./stop_real

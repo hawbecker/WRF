@@ -1,0 +1,14 @@
+#!/bin/bash
+#PBS -A NRAL0034
+#PBS -l walltime=06:00:00
+#PBS -l select=50:ncpus=128:mpiprocs=128
+#PBS -N WRF
+#PBS -q main
+#PBS -l job_priority=regular
+cd /glade/derecho/scratch/lijiez/WRF-MCANOPY-ASR/WRFV4.5.2/test/em_real
+# cd /glade/derecho/scratch/lijiez/WRF-MCANOPY-ASR/WRFV4.5.2/test/em_real
+source env_LZh.sh
+
+touch ./start_wrf
+mpibind ./wrf.exe >& log/wrf.log
+touch ./stop_wrf

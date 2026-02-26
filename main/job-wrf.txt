@@ -1,0 +1,13 @@
+#!/bin/bash
+#PBS -A WYOM0122
+#PBS -l walltime=06:00:00
+#PBS -l select=1:ncpus=128:mpiprocs=128
+#PBS -N WRF
+#PBS -q main
+#PBS -l job_priority=economy
+
+
+cd /glade/derecho/scratch/lijiez/WRF-MCANOPY-ASR/WRFV4.5.2/main
+source env_LZh.sh
+
+mpibind ./wrf.exe >& log/wrf.log

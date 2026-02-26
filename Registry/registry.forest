@@ -1,0 +1,65 @@
+rconfig integer mcm_opt         namelist,physics       max_domains     0       rh       "mcm_opt"              ">0:activate MCM"            ""
+rconfig logical mcm_link_rad    namelist,physics       max_domains    .false.  rh       "mcm_link_rad"         "true uses SW and LW fluxes from rad scheme"            ""
+rconfig logical mcm_use_3d_lad  namelist,physics       max_domains    .false.  rh       "mcm_use_3d_lad"       "true uses aux files for LAD/LAI"            ""
+
+state   real    coszr     ij      dyn_em       1         -     -       "coszr"    "cosin sun zenith angle"      ""
+
+state   real    Rswdir_htop_vis     ij      dyn_em       1         -     -       "Rswdir_htop_vis"    "direct down sw radiation at canoopy top"      "W/m^2"
+
+state   real    Rswdir_htop_red     ij      dyn_em       1         -     -       "Rswdir_htop_red"    "direct down sw radiation at canoopy top"      "W/m^2"
+
+state   real    Rswdif_htop_vis     ij      dyn_em       1         -     -       "Rswdif_htop_vis"    "diffusion down sw radiation at canoopy top"      "W/m^2"
+
+state   real    Rswdif_htop_red     ij      dyn_em       1         -     -       "Rswdif_htop_red"    "diffusion down sw radiation at canoopy top"      "W/m^2"
+
+state   real    Rlwd_htop     ij      dyn_em       1         -     -       "Rlwd_htop"    "down lw radiation at canoopy top"      "W/m^2"
+
+state   real    co2             ikjftb  scalar      1         -      h  "co2" "ppmv"
+
+
+
+state  real   mcm_tlai     ikj     dyn_em    1   -   -   "mcm_tlai"    ""     ""
+state  real   mcm_sw       ikj     dyn_em    1   -   -   "mcm_sw"    ""     ""
+state  real   mcm_lw       ikj     dyn_em    1   -   -   "mcm_lw"    ""     ""
+state  real   mcm_sh       ikj     dyn_em    1   -   -   "mcm_sh"    ""     ""
+state  real   mcm_le       ikj     dyn_em    1   -   -   "mcm_le"    ""     ""
+
+state  real   mcm_co2_tend ikj     dyn_em    1   -   r   "mcm_co2_tend"  " "     ""
+state  real   mcm_qv_tend  ikj     dyn_em    1   -   r   "mcm_qv_tend"  " "     ""
+state  real   mcm_t_tend   ikj     dyn_em    1   -   r   "mcm_t_tend"  "heat source from canopy"     "K"
+
+state  real   mcm_q_source         ikj     dyn_em    1   -   -   "mcm_q_source"    ""     ""
+state  real   mcm_co2_source       ikj     dyn_em    1   -   -   "mcm_co2_source"    ""     ""
+
+
+state  real   mcm_le_grnd  ij      dyn_em    1   -   -   "mcm_le_grnd"  ""     ""
+state  real   mcm_sh_grnd  ij      dyn_em    1   -   -   "mcm_sh_grnd"  ""     ""
+
+#-- radiation --
+state  real   mcm_sw_in   ij      dyn_em    1   -   -   "mcm_sw_in"  ""     ""
+state  real   mcm_sw_out  ij      dyn_em    1   -   -   "mcm_sw_out"  ""     ""
+state  real   mcm_lw_in   ij      dyn_em    1   -   -   "mcm_lw_in"  ""     ""
+state  real   mcm_lw_out  ij      dyn_em    1   -   -   "mcm_lw_out"  ""     ""
+#=====================
+
+state  real   mcm_tau13_t  ikj  dyn_em   1  Z    -     "mcm_tau13_t"    " "      " "
+state  real   mcm_tau13_q  ikj  dyn_em   1  Z    -     "mcm_tau13_q"    " "      " "
+state  real   mcm_tau13_c  ikj  dyn_em   1  Z    -     "mcm_tau13_c"    " "      " "
+
+
+state    real   www       ikj     dyn_em      1         Z      -         "www"   "eta-dot"    "Pa s-1"
+
+state   real  cht     -       dyn_em   -   -  -       "cht"   "canopy height"  "m"
+state  real   cd_pan ikj     dyn_em    1   -   -   "cd_pan"  " "     ""
+
+# PSH
+state    real   lad_3d        ikj     dyn_em  1  -   rh  "LAD3D"          "3D leaf area density"      "m2 m-3"
+state    real   canopyz_2d    ij      dyn_em  1  -   rh  "CANOPYZ2D"      "2D canopy height"          "m"
+state    real   lad_z_3d      k       dyn_em  1  -   rh  "LAD_Z_3D"       "3D LAD vertical coordinate" "-"
+
+
+rconfig   integer     mcm_model   namelist,physics     max_domains    0
+
+package   mcm_model0     mcm_model==0     -     -
+package   mcm_model1     mcm_model==1     -     scalar:co2;state:coszr,Rswdir_htop_vis,Rswdir_htop_red,Rswdif_htop_vis,Rswdif_htop_red,Rlwd_htop,mcm_tveg,mcm_tsoil,mcm_qsoil,mcm_co2_tend,mcm_qv_tend,mcm_t_tend
+package   mcm_model2     mcm_model==2     -     scalar:co2;state:coszr,Rswdir_htop_vis,Rswdir_htop_red,Rswdif_htop_vis,Rswdif_htop_red,Rlwd_htop,mcm_tveg,mcm_tsoil,mcm_qsoil,mcm_co2_tend,mcm_qv_tend,mcm_t_tend,mcm_tlai,mcm_sw,mcm_lw,mcm_sh,mcm_le

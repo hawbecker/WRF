@@ -1,0 +1,3 @@
+MODULE module_chem_share
+USE module_state_description
+END MODULE module_chem_share

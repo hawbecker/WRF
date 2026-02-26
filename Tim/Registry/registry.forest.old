@@ -1,0 +1,95 @@
+rconfig integer mcm_opt         namelist,dynamics       max_domains     0       rh       ""
+
+state   real    coszr     ij      dyn_em       1         -     -       "coszr"    "cosin sun zenith angle"      ""
+
+state   real    Rswdir_htop_vis     ij      dyn_em       1         -     -       "Rswdir_htop_vis"    "direct down sw radiation at canoopy top"      "W/m^2"
+
+state   real    Rswdir_htop_red     ij      dyn_em       1         -     -       "Rswdir_htop_red"    "direct down sw radiation at canoopy top"      "W/m^2"
+
+state   real    Rswdif_htop_vis     ij      dyn_em       1         -     -       "Rswdif_htop_vis"    "diffusion down sw radiation at canoopy top"      "W/m^2"
+
+state   real    Rswdif_htop_red     ij      dyn_em       1         -     -       "Rswdif_htop_red"    "diffusion down sw radiation at canoopy top"      "W/m^2"
+
+state   real    Rlwd_htop     ij      dyn_em       1         -     -       "Rlwd_htop"    "down lw radiation at canoopy top"      "W/m^2"
+
+state   real    co2             ikjftb  scalar      1         -      h  "co2" "ppmv"
+
+
+
+state  real   mcm_parsun   ikj     dyn_em    1   -   -   "mcm_parsun"  ""     ""
+state  real   mcm_parsha   ikj     dyn_em    1   -   -   "mcm_parsha"  ""     ""
+state  real   mcm_tlai     ikj     dyn_em    1   -   -   "mcm_tlai"    ""     ""
+state  real   mcm_rssun    ikj     dyn_em    1   -   -   "mcm_rssun"    ""     ""
+state  real   mcm_rssha    ikj     dyn_em    1   -   -   "mcm_rssha"    ""     ""
+state  real   mcm_ansun    ikj     dyn_em    1   -   -   "mcm_ansun" ""     ""
+state  real   mcm_ansha    ikj     dyn_em    1   -   -   "mcm_ansha" ""     ""
+state  real   mcm_rb       ikj     dyn_em    1   -   -   "mcm_rb"    ""     ""
+state  real   mcm_sw       ikj     dyn_em    1   -   -   "mcm_sw"    ""     ""
+state  real   mcm_lw       ikj     dyn_em    1   -   -   "mcm_lw"    ""     ""
+state  real   mcm_sh       ikj     dyn_em    1   -   -   "mcm_sh"    ""     ""
+state  real   mcm_le       ikj     dyn_em    1   -   -   "mcm_le"    ""     ""
+state  real   mcm_tveg     ikj     dyn_em    1   -   r   "mcm_tveg"  ""     ""
+
+state  real   mcm_tsoil    ikj     dyn_em    1   -   r   "mcm_tsoil"  ""     ""
+state  real   mcm_qsoil    ikj     dyn_em    1   -   r   "mcm_qsoil"  ""     ""
+
+state  real   mcm_co2_tend ikj     dyn_em    1   -   r   "mcm_co2_tend"  " "     ""
+state  real   mcm_qv_tend  ikj     dyn_em    1   -   r   "mcm_qv_tend"  " "     ""
+state  real   mcm_t_tend   ikj     dyn_em    1   -   r   "mcm_t_tend"  "heat source from canopy"     "K"
+
+state  real   mcm_q_source         ikj     dyn_em    1   -   -   "mcm_q_source"    ""     ""
+state  real   mcm_co2_source       ikj     dyn_em    1   -   -   "mcm_co2_source"    ""     ""
+
+
+state  real   mcm_sw_grnd  ij      dyn_em    1   -   -   "mcm_sw_grnd"  ""     ""
+state  real   mcm_lw_grnd  ij      dyn_em    1   -   -   "mcm_lw_grnd"  ""     ""
+state  real   mcm_le_grnd  ij      dyn_em    1   -   -   "mcm_le_grnd"  ""     ""
+state  real   mcm_sh_grnd  ij      dyn_em    1   -   -   "mcm_sh_grnd"  ""     ""
+state  real   mcm_rb_grnd  ij      dyn_em    1   -   -   "mcm_rb_grnd"  ""     ""
+state  real   mcm_rsoil_grnd  ij   dyn_em    1   -   -   "mcm_rsoil_grnd"  ""     ""
+
+#-- radiation --
+state  real   mcm_sw_in   ij      dyn_em    1   -   -   "mcm_sw_in"  ""     ""
+state  real   mcm_sw_out  ij      dyn_em    1   -   -   "mcm_sw_out"  ""     ""
+state  real   mcm_lw_in   ij      dyn_em    1   -   -   "mcm_lw_in"  ""     ""
+state  real   mcm_lw_out  ij      dyn_em    1   -   -   "mcm_lw_out"  ""     ""
+#=====================
+
+state  real   mcm_tau13_t  ikj  dyn_em   1  Z    -     "mcm_tau13_t"    " "      " "
+state  real   mcm_tau13_q  ikj  dyn_em   1  Z    -     "mcm_tau13_q"    " "      " "
+state  real   mcm_tau13_c  ikj  dyn_em   1  Z    -     "mcm_tau13_c"    " "      " "
+
+
+state    real   www       ikj     dyn_em      1         Z      -         "www"   "eta-dot"    "Pa s-1"
+
+state   real  cht     -       dyn_em   -   -  -       "cht"   "canopy height"  "m"
+state  real   cd_pan ikj     dyn_em    1   -   -   "cd_pan"  " "     ""
+
+#===================== test out put
+state  real   advect_x ikj     dyn_em    1   -   -   "advect_x"  " "     ""
+state  real   advect_y ikj     dyn_em    1   -   -   "advect_y"  " "     ""
+state  real   advect_z ikj     dyn_em    1   -   -   "advect_z"  " "     ""
+state  real   turb_x ikj     dyn_em    1   -   -   "turb_x"  " "     ""
+state  real   turb_y ikj     dyn_em    1   -   -   "turb_y"  " "     ""
+state  real   turb_z ikj     dyn_em    1   -   -   "turb_z"  " "     ""
+state  real   dummy ikj     dyn_em    1   -   -   "dummy"  " "     ""
+
+#=====================
+# For Q-criterion
+state  real   mcm_Q     ikj     dyn_em    1   -   -   "mcm_Q"  ""     ""
+state  real   rot12     ikj     dyn_em    1   -   -    "rot12"  ""     ""
+state  real   rot13     ikj     dyn_em    1   -   -   "rot13"  ""     ""
+state  real   rot23     ikj     dyn_em    1   -   -   "rot23"  ""     ""
+
+halo      HALO_Q_CRITERION dyn_em  4:defor11,defor22,defor12,defor13,defor23,rot12,rot13,rot23
+period    PERIOD_Q_CRITERION_BC dyn_em 2:defor11,defor22,defor12,defor13,defor23,rot12,rot13,rot23
+#=====================
+
+rconfig   integer     mcm_model   namelist,physics     max_domains    1
+
+package   mcm_model0     mcm_model==0     -     -
+package   mcm_model1     mcm_model==1     -     scalar:co2;state:coszr,Rswdir_htop_vis,Rswdir_htop_red,Rswdif_htop_vis,Rswdif_htop_red,Rlwd_htop,mcm_tveg,mcm_tsoil,mcm_qsoil,mcm_co2_tend,mcm_qv_tend,mcm_t_tend,mcm_Q,rot12,rot13,rot23
+package   mcm_model2     mcm_model_out==1     -   state:mcm_parsun,mcm_parsha,mcm_tlai,mcm_rssun,mcm_rssha,mcm_ansun,mcm_ansha,mcm_rb,mcm_sw,mcm_lw,mcm_sh,mcm_le,mcm_tveg
+
+
+
