@@ -1,0 +1,2 @@
+caseB_3dlad: j=0, i=0, selection=max CANOPYHGT_2D=50.00 m
+caseD_althgt: j=0, i=50, selection=max CANOPYHGT_2D=60.00 m
