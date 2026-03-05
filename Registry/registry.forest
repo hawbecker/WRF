@@ -1,6 +1,9 @@
 rconfig integer mcm_opt         namelist,physics       max_domains     0       rh       "mcm_opt"              ">0:activate MCM"            ""
 rconfig logical mcm_link_rad    namelist,physics       max_domains    .false.  rh       "mcm_link_rad"         "true uses SW and LW fluxes from rad scheme"            ""
 rconfig logical mcm_use_3d_lad  namelist,physics       max_domains    .false.  rh       "mcm_use_3d_lad"       "true uses aux files for LAD/LAI"            ""
+rconfig integer num_canopy_levels namelist,physics      1              5       irh      "num_canopy_levels"     "number of canopy levels for CANOPYLAD_3D"   ""
+
+dimspec canlev  2     namelist=num_canopy_levels       z     canopy_levels
 
 state   real    coszr     ij      dyn_em       1         -     -       "coszr"    "cosin sun zenith angle"      ""
 
@@ -53,9 +56,10 @@ state   real  cht     -       dyn_em   -   -  -       "cht"   "canopy height"  "
 state  real   cd_pan ikj     dyn_em    1   -   -   "cd_pan"  " "     ""
 
 # PSH
-state    real   lad_3d        ikj     dyn_em  1  -   rh  "LAD3D"          "3D leaf area density"      "m2 m-3"
-state    real   canopyz_2d    ij      dyn_em  1  -   rh  "CANOPYZ2D"      "2D canopy height"          "m"
-state    real   lad_z_3d      k       dyn_em  1  -   rh  "LAD_Z_3D"       "3D LAD vertical coordinate" "-"
+state    real   lad_3d        i{canlev}j  dyn_em  1  Z   irh "CANOPYLAD_3D"   "3D leaf area density"      "m2 m-3"
+state    real   canopyz_2d    ij      dyn_em  1  -   irh "CANOPYHGT_2D"   "2D canopy height"          "m"
+state    real   canopylai_2d  ij      dyn_em  1  -   irh "CANOPYLAI_2D"   "2D total canopy LAI"       "m2 m-2"
+state    real   lad_z_3d      {canlev} dyn_em  1  Z   irh "CANOPY_NORMZ"   "3D LAD vertical coordinate" "-"
 
 
 rconfig   integer     mcm_model   namelist,physics     max_domains    0

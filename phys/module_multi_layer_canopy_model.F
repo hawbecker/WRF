@@ -432,13 +432,17 @@
   end subroutine read_obs_driving
 
   !--------------------------------------------------------
-    subroutine initiate_mcm_forest( SP, CLAI, MF, zi, nz, z0, ii, jj )
+    subroutine initiate_mcm_forest( grid, config_flags, SP, CLAI, MF, zi, nz, z0, ii, jj )
 
   USE mcm_data_mod, only : Soil_property, canopy_lai, mcm_force
   USE clm_varpar_my, only : nlevgrnd, sc_p
+  USE module_domain_type
+  USE module_configure, only : grid_config_rec_type
   
   implicit none
 
+    type(domain), intent(in) :: grid
+    type(grid_config_rec_type),  INTENT(IN) :: config_flags
   INTEGER, INTENT( IN )  :: nz
   REAL, DIMENSION(1:nz),INTENT(IN) :: zi
   real :: z0  !input roughness
@@ -465,7 +469,7 @@
 ! TWJ
   SP%ipts = 7 ! TODO
   CLAI%sai(:) = 0.
-    call lai_wrf_grid( CLAI%tlai, CLAI%lai, CLAI%lad, CLAI%h, CLAI%z, CLAI%dz, CLAI%bl, CLAI%nw, zi(1:nz), nz, ii, jj)
+    call lai_wrf_grid( grid, config_flags, CLAI%tlai, CLAI%lai, CLAI%lad, CLAI%h, CLAI%z, CLAI%dz, CLAI%bl, CLAI%nw, zi(1:nz), nz, ii, jj)
 
   sum_lai = 0.
   do i = 1, CLAI%nw
@@ -835,13 +839,15 @@
  
 !=============================================================
 
-    subroutine lai_wrf_grid( tlai, lai_z, lad_z, h, z, dz, bl, numcan_wrf, zi, nz, ii, jj )
+    subroutine lai_wrf_grid( grid, config_flags, tlai, lai_z, lad_z, h, z, dz, bl, numcan_wrf, zi, nz, ii, jj )
 
   use clm_varpar_my, only : mxlevcan_wrf 
+    use module_domain_type
+    use module_configure, only : grid_config_rec_type
     implicit none
-    ! allow access to grid state variables when 3D option is enabled
-    use module_domain, only : grid
-    use module_configure, only : config_flags
+    ! grid passed from caller
+    type(domain), intent(in) :: grid
+    type(grid_config_rec_type),  INTENT(IN) :: config_flags
 
   integer :: nz
   real, dimension(1:nz), intent(in) :: zi  ! above surf (m), start from surf to canopy top
@@ -859,6 +865,7 @@
   real :: lh(200)
   real, dimension(1:mxlevcan_wrf) :: lai_z_tmp, lad_z_tmp, z_tmp, dz_tmp
   integer :: k, ir, tl
+  real, allocatable :: ht(:), dzlev(:)
  
   if ( config_flags%mcm_use_3d_lad ) then
         ! populate arrays from grid variables for this column
@@ -868,20 +875,36 @@
             lad_ht(k) = grid%lad_z_3d(k)
         end do
         cht = grid%canopyz_2d(ii,jj)
-
-        ! compute total LAI by integrating lad over the vertical
+        ! -- debug output to verify values read from grid
+        write(6,*) '*** DEBUG: lai_wrf_grid 3D LAD column', ii, jj
+        write(6,*) '     nlevel, chc=', nlevel, cht
         if ( nlevel .gt. 0 ) then
-            real, allocatable :: ht(:), dzlev(:)
-            allocate(ht(nlevel), dzlev(nlevel))
-            ht = lad_ht(1:nlevel) * cht
-            dzlev(1) = ht(1)
-            do k = 2, nlevel
-                dzlev(k) = ht(k) - ht(k-1)
-            end do
-            tlai = sum( lad(1:nlevel) * dzlev(1:nlevel) )
-            deallocate(ht, dzlev)
+            write(6,*) '     grid%lad_3d slice =', ( grid%lad_3d(ii,k,jj), k=1,nlevel )
         else
-            tlai = 0.0
+            write(6,*) '     grid%lad_3d has zero levels'
+        endif
+        do k = 1, min(nlevel,10)
+            write(6,'(A,I3,2F8.4)') '     k, lad, lad_ht =', k, lad(k), lad_ht(k)
+        end do
+        write(6,*) '*** end debug'
+
+        ! prefer explicit total LAI from wrfinput (for parity with legacy lai.txt first line)
+        if ( associated(grid%canopylai_2d) ) then
+            tlai = grid%canopylai_2d(ii,jj)
+        else
+            ! fallback: compute total LAI by integrating lad over the vertical
+            if ( nlevel .gt. 0 ) then
+                allocate(ht(nlevel), dzlev(nlevel))
+                ht = lad_ht(1:nlevel) * cht
+                dzlev(1) = ht(1)
+                do k = 2, nlevel
+                    dzlev(k) = ht(k) - ht(k-1)
+                end do
+                tlai = sum( lad(1:nlevel) * dzlev(1:nlevel) )
+                deallocate(ht, dzlev)
+            else
+                tlai = 0.0
+            endif
         endif
         lh = lad_ht*cht
         h = cht
@@ -7172,7 +7195,7 @@ MODULE module_multi_layer_canopy_model
                          its, ite, jts, jte, kts, kte      )
 
   USE module_domain, only : domain
-  USE module_configure, ONLY : grid_config_rec_type
+  USE module_configure, ONLY : grid_config_rec_type, model_config_rec
 
   USE module_multi_layer_canopy_model_func
   USE clm_varpar_my, only : nlevgrnd, mxlevcan_wrf
@@ -7182,7 +7205,7 @@ MODULE module_multi_layer_canopy_model
 
   IMPLICIT NONE
   TYPE(domain) , INTENT(INOUT)   :: grid
-  TYPE(grid_config_rec_type), INTENT(IN   ) :: config_flags
+  TYPE ( grid_config_rec_type ), INTENT(IN) :: config_flags
 
   INTEGER, INTENT( IN )  :: ids, ide, jds, jde, kds, kde, &
                             ims, ime, jms, jme, kms, kme, &
@@ -7226,9 +7249,11 @@ MODULE module_multi_layer_canopy_model
   REAL :: dt_soil
   REAL :: OBS_interval
   INTEGER :: i, j, k, i_start, i_end, j_start, j_end, dd
+    integer :: ii, jj, kk, klad_lo, klad_hi, knorm_lo, knorm_hi
   real, save :: sw_dir_vis = 0, sw_dir_nir = 0, sw_dif_vis = 0, sw_dif_nir = 0, &
                 lwd = 0, coszen = 0, Utop_C = 0, qsoil_C = 0, tsoil_C = 0, G_C = 0
   real :: s_bdy, roughness_len
+    real :: ladmin, ladmax, normmin, normmax, hgtmin, hgtmax
   logical, save :: initial_mcm  = .true.
   !logical, save :: first_call_mcm  = .true.
   !integer, save :: first_call_mcm  = 0
@@ -7237,6 +7262,47 @@ MODULE module_multi_layer_canopy_model
 !RETURN
 
   CALL wrf_debug(200, 'Entering MCM_DRIVER')
+
+  !--- diagnostic on first invocation: report global min/max of canopy inputs ---
+  if ( initial_mcm ) then
+      ladmin  = 1.0e30
+      ladmax  = -1.0e30
+      normmin = 1.0e30
+      normmax = -1.0e30
+      hgtmin  = 1.0e30
+      hgtmax  = -1.0e30
+      if ( associated(grid%lad_3d) ) then
+                klad_lo = lbound(grid%lad_3d,2)
+                klad_hi = ubound(grid%lad_3d,2)
+        do jj = jms, jme
+          do ii = ims, ime
+                        do kk = klad_lo, klad_hi
+              ladmin = min(ladmin, grid%lad_3d(ii,kk,jj))
+              ladmax = max(ladmax, grid%lad_3d(ii,kk,jj))
+            end do
+          end do
+        end do
+      endif
+      if ( associated(grid%lad_z_3d) ) then
+                knorm_lo = lbound(grid%lad_z_3d,1)
+                knorm_hi = ubound(grid%lad_z_3d,1)
+                do kk = knorm_lo, knorm_hi
+          normmin = min(normmin, grid%lad_z_3d(kk))
+          normmax = max(normmax, grid%lad_z_3d(kk))
+        end do
+      endif
+      if ( associated(grid%canopyz_2d) ) then
+        do jj = jms, jme
+          do ii = ims, ime
+            hgtmin = min(hgtmin, grid%canopyz_2d(ii,jj))
+            hgtmax = max(hgtmax, grid%canopyz_2d(ii,jj))
+          end do
+        end do
+      endif
+      write(6,*) '*** DIAG: global lad_3d min,max =', ladmin, ladmax
+      write(6,*) '*** DIAG: global lad_z_3d min,max =', normmin, normmax
+      write(6,*) '*** DIAG: global canopyhgt min,max =', hgtmin, hgtmax
+  endif
 
   !------ MCM must be after IBM initiating the grid height ----
 !  IF (first_call_mcm) THEN
@@ -7262,7 +7328,7 @@ MODULE module_multi_layer_canopy_model
           !if (hgt(i,j) > 10. ) then
           !if (i <= 300 .or. i >= 800 ) then
              roughness_len = 0.05 ! unit [m]
-             call initiate_mcm_forest( SP(i,j), CLAI(i,j), MF(i,j), &
+             call initiate_mcm_forest( grid, config_flags, SP(i,j), CLAI(i,j), MF(i,j), &
                                 grid%z(i,1:kme-1,j) - hgt(i,j), kme-1, roughness_len, i, j )
           !else
           !   roughness_len = 0.1 ! unit [m]
