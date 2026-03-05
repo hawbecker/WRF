@@ -18,9 +18,9 @@ In `Registry/registry.forest`, canopy fields were formalized as model state with
 
 This ensures the canopy structure fields are available on `grid%...` and can be carried through restarts.
 
-### 2) MCM initiation now receives grid/config explicitly
+### 2) MCANOPY initiation now receives grid/config explicitly
 
-In `phys/module_multi_layer_canopy_model.F`, the MCM setup path was refactored to pass domain/config into canopy initialization:
+In `phys/module_multi_layer_canopy_model.F`, the MCANOPY setup path was refactored to pass domain/config into canopy initialization:
 
 - `initiate_mcm_forest(...)` now takes `grid` and `config_flags`
 - `lai_wrf_grid(...)` now takes `grid` and `config_flags`
@@ -38,7 +38,7 @@ When `config_flags%mcm_use_3d_lad` is true, `lai_wrf_grid` now:
 - Uses `grid%canopylai_2d(i,j)` as preferred total LAI (`tlai`) when present
 - Falls back to integrated LAD-over-height LAI only if `canopylai_2d` is not available
 
-This is the core change that enables MCM to run from the new `wrfinput` canopy variables.
+This is the core change that enables MCANOPY to run from the new `wrfinput` canopy variables.
 
 ### 4) Initialization path aligned with wrfinput/restart ownership
 
