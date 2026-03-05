@@ -455,7 +455,7 @@
   integer :: i
   real :: sum_lai, LAI
 
-  write(*,*), 'TWJ z0 = ', z0
+!  write(*,*), 'TWJ z0 = ', z0
 
   ! ------- canopy ground roughness coeff. ------
   if (zi(1) < 0.) then  ! This only happens when using IBM, surface drag is invalid
@@ -487,7 +487,7 @@
   do i = 1, CLAI%nw
      sum_lai = sum_lai + CLAI%lai(i)
   enddo
-  write(*,*) 'lai', sum_lai
+!  write(*,*) 'lai', sum_lai
   !--------
 
   ! ------- driving force ------
