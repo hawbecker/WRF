@@ -1,9 +1,0 @@
-variable,max_abs_diff,mean_abs_diff,rmse
-CANOPYHGT_2D,0.0,0.0,0.0
-CANOPYLAI_2D,4.0,4.0,4.0
-T2,0.0,0.0,0.0
-U10,0.0,0.0,0.0
-V10,0.0,0.0,0.0
-WSPD10,0.0,0.0,0.0
-HFX,0.0,0.0,0.0
-LH,0.0,0.0,0.0
